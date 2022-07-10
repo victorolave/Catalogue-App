@@ -1,24 +1,66 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Col, Row, Table} from "reactstrap";
 import Breadcrumbs from "../../components/Breadcrumb";
 import Create from "./components/Create";
+import {axiosApi} from "../../helpers/api";
+import Edit from "./components/Edit";
 
 const Brands = () => {
 
+    const [brands, setBrands] = useState([]);
+
+    const [brand, setBrand] = useState(null);
+
+    // State to manage create modal
     const [createBrand, setCreateBrand] = useState(false);
     const toggleCreate = () => setCreateBrand(!createBrand);
 
+    // State to manage edit modal
     const [editBrand, setEditBrand] = useState(false);
     const toggleEdit = () => setEditBrand(!editBrand);
 
-    const edit = () => {
+    /**
+     * @desc Method to open edit modal.
+     * @param brand
+     * @returns {Promise<void>}
+     */
+    const edit = async (brand) => {
+        await setBrand(brand);
+        toggleEdit();
+    }
 
+    /**
+     * @desc Method to get brands records.
+     * @returns {Promise<void>}
+     */
+    const getBrands = async () => {
+        await axiosApi.get('brand')
+            .then(response => setBrands(response.data))
+            .catch(error => console.error(error));
+    }
+
+    /**
+     * @desc Method to delete brand record.
+     * @param id
+     * @returns {Promise<void>}
+     */
+    const deleteBrand = async (id) => {
+        await axiosApi.delete(`brand/${id}`)
+            .then(response => {
+                getBrands();
+            })
+            .catch(error => console.error(error));
     }
 
     let breadcrumbItems = [
         {title: "Catalogue", link: "/"},
         {title: "Brands", link: "/brands"},
     ];
+
+    useEffect(() => {
+        getBrands();
+    }, []);
+
 
     return (
         <>
@@ -47,21 +89,29 @@ const Brands = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Marca 1</td>
-                            <td>PRO01</td>
-                            <td>
-                                <i className="fa fa-edit text-primary" style={{ marginRight: "10px", fontSize: "20px"  }}/>
-                                <i className="fa fa-trash text-danger" style={{ fontSize: "20px" }}/>
-                            </td>
-                        </tr>
+                        {
+                            brands.map((brand, index) => (
+                                <tr key={index}>
+                                    <td>{ brand.id }</td>
+                                    <td>{ brand.name }</td>
+                                    <td>{ brand.code }</td>
+                                    <td>
+                                        <i onClick={() => edit(brand)} className="fa fa-edit text-primary" style={{ marginRight: "10px", fontSize: "20px"  }}/>
+                                        <i onClick={() => deleteBrand(brand.id)} className="fa fa-trash text-danger" style={{ fontSize: "20px" }}/>
+                                    </td>
+                                </tr>
+                            ))
+                        }
                         </tbody>
                     </Table>
                 </Col>
             </Row>
 
-            <Create modal={createBrand} toggle={toggleCreate} />
+            <Create modal={createBrand} toggle={toggleCreate} getBrands={getBrands} />
+
+            {
+                brand ? <Edit modal={editBrand} toggle={toggleEdit} brand={brand} getBrands={getBrands} /> : <></>
+            }
         </>
     )
 }
