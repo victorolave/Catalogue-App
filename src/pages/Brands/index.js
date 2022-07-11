@@ -4,9 +4,9 @@ import Breadcrumbs from "../../components/Breadcrumb";
 import Create from "./components/Create";
 import {axiosApi} from "../../helpers/api";
 import Edit from "./components/Edit";
+import Swal from "sweetalert2";
 
 const Brands = () => {
-
     const [brands, setBrands] = useState([]);
 
     const [brand, setBrand] = useState(null);
@@ -45,11 +45,30 @@ const Brands = () => {
      * @returns {Promise<void>}
      */
     const deleteBrand = async (id) => {
-        await axiosApi.delete(`brand/${id}`)
-            .then(response => {
-                getBrands();
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Are you sure to delete this record?, this action cannot be undone.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            confirmButtonColor: 'red'
+        })
+            .then(async (result) => {
+                if (result.isConfirmed) {
+                    await axiosApi.delete(`brand/${id}`)
+                        .then(response => {
+
+                            Swal.fire({
+                                title: "Success!",
+                                text: "The record was deleted with success",
+                                icon: "success"
+                            })
+
+                            getBrands();
+                        })
+                        .catch(error => console.error(error));
+                }
             })
-            .catch(error => console.error(error));
     }
 
     let breadcrumbItems = [
@@ -68,13 +87,14 @@ const Brands = () => {
                 <Col md={6}>
                     <h1 className="mb-0">Brands</h1>
                 </Col>
-                <Col md={6} style={{ textAlign: "right" }}>
-                    <Breadcrumbs breadcrumbItems={breadcrumbItems} />
+                <Col md={6} style={{textAlign: "right"}}>
+                    <Breadcrumbs breadcrumbItems={breadcrumbItems}/>
                 </Col>
             </Row>
             <Row className="justify-content-end my-4">
-                <Col md={2}  style={{ textAlign: "right" }}>
-                    <Button onClick={toggleCreate} className="fw-bold" color="primary" block> <i className="fa fa-plus" /> Add Brand</Button>
+                <Col md={2} style={{textAlign: "right"}}>
+                    <Button onClick={toggleCreate} className="fw-bold" color="primary" block> <i
+                        className="fa fa-plus"/> Add Brand</Button>
                 </Col>
             </Row>
             <Row className="mt-4">
@@ -92,12 +112,14 @@ const Brands = () => {
                         {
                             brands.map((brand, index) => (
                                 <tr key={index}>
-                                    <td>{ brand.id }</td>
-                                    <td>{ brand.name }</td>
-                                    <td>{ brand.code }</td>
+                                    <td>{brand.id}</td>
+                                    <td>{brand.name}</td>
+                                    <td>{brand.code}</td>
                                     <td>
-                                        <i onClick={() => edit(brand)} className="fa fa-edit text-primary" style={{ marginRight: "10px", fontSize: "20px"  }}/>
-                                        <i onClick={() => deleteBrand(brand.id)} className="fa fa-trash text-danger" style={{ fontSize: "20px" }}/>
+                                        <i onClick={() => edit(brand)} className="fa fa-edit text-primary"
+                                           style={{marginRight: "10px", fontSize: "20px"}}/>
+                                        <i onClick={() => deleteBrand(brand.id)} className="fa fa-trash text-danger"
+                                           style={{fontSize: "20px"}}/>
                                     </td>
                                 </tr>
                             ))
@@ -107,10 +129,10 @@ const Brands = () => {
                 </Col>
             </Row>
 
-            <Create modal={createBrand} toggle={toggleCreate} getBrands={getBrands} />
+            <Create modal={createBrand} toggle={toggleCreate} getBrands={getBrands}/>
 
             {
-                brand ? <Edit modal={editBrand} toggle={toggleEdit} brand={brand} getBrands={getBrands} /> : <></>
+                brand ? <Edit modal={editBrand} toggle={toggleEdit} brand={brand} getBrands={getBrands}/> : <></>
             }
         </>
     )

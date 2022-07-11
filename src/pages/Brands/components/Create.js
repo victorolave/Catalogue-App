@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import {Button, FormGroup, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {axiosApi} from "../../../helpers/api";
+import Swal from "sweetalert2";
 
 const Create = (props) => {
 
@@ -22,6 +23,12 @@ const Create = (props) => {
             .then(response => {
                 props.toggle();
                 props.getBrands();
+
+                Swal.fire({
+                    title: "Success!",
+                    text: "The record was created with success",
+                    icon: "success"
+                })
             })
             .catch(error => console.log(error));
     }
