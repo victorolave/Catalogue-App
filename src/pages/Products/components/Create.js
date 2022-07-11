@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {Button, FormGroup, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {axiosApi} from "../../../helpers/api";
 import Swal from "sweetalert2";
+import {toast} from "react-hot-toast";
 
 const Create = (props) => {
 
@@ -22,27 +23,29 @@ const Create = (props) => {
      * @returns {Promise<void>}
      */
     const save = async () => {
-        let data = {
-            name: name,
-            size_id: size,
-            remarks: remarks,
-            brand_id: brand,
-            stock: stock,
-            shipment_date: shipmentDate
-        };
+        if (validate()) {
+            let data = {
+                name: name,
+                size_id: size,
+                remarks: remarks,
+                brand_id: brand,
+                stock: stock,
+                shipment_date: shipmentDate
+            };
 
-        await axiosApi.post('product', data)
-            .then(response => {
-                props.toggle();
-                props.getProducts();
+            await axiosApi.post('product', data)
+                .then(response => {
+                    props.toggle();
+                    props.getProducts();
 
-                Swal.fire({
-                    title: "Success!",
-                    text: "The record was created with success",
-                    icon: "success"
+                    Swal.fire({
+                        title: "Success!",
+                        text: "The record was created with success",
+                        icon: "success"
+                    })
                 })
-            })
-            .catch(error => console.log(error));
+                .catch(error => toast.error("Something was wrong, try again later..."));
+        }
     }
 
     /**
@@ -65,6 +68,17 @@ const Create = (props) => {
             .catch(error => console.error(error));
     }
 
+    /**
+     * @desc Method to validate fields.
+     * @returns {boolean}
+     */
+    const validate = () => {
+        if (name.length && size !== '' && remarks.length && brand !== '' && stock.length && shipmentDate !== '') return true;
+        else {
+            toast.error("All fields are required")
+        }
+    }
+
     useEffect(() => {
         getBrands();
         getSizes();
@@ -83,6 +97,7 @@ const Create = (props) => {
                 <FormGroup>
                     <Label for="size">Size</Label>
                     <Input id="size" name="size" placeholder="Select size of product..." type="select" value={size} onChange={(e) => setSize(e.target.value)} >
+                        <option></option>
                         {
                             sizes.map((size, index) => <option key={index} value={size.id}>{ size.size }</option>)
                         }
@@ -95,6 +110,7 @@ const Create = (props) => {
                 <FormGroup>
                     <Label for="brand">Brand</Label>
                     <Input id="brand" name="brand" placeholder="Select brand of product..." type="select" value={brand} onChange={(e) => setBrand(e.target.value)} >
+                        <option></option>
                         {
                             brands.map((brand, index) => <option key={index} value={brand.id}>{ brand.name }</option>)
                         }
