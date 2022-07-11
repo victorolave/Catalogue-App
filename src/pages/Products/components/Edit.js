@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {Button, FormGroup, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 import {axiosApi} from "../../../helpers/api";
 import Swal from "sweetalert2";
+import {toast} from "react-hot-toast";
 
 const Edit = (props) => {
 
@@ -74,6 +75,17 @@ const Edit = (props) => {
         setBrand(product.brand_id)
         setStock(product.stock)
         setShipmentDate(product.shipment_date)
+    }
+
+    /**
+     * @desc Method to validate fields.
+     * @returns {boolean}
+     */
+    const validate = () => {
+        if (name.length && size !== '' && remarks.length && brand !== '' && stock.length && shipmentDate !== '') return true;
+        else {
+            toast.error("All fields are required")
+        }
     }
 
     useEffect(() => {
