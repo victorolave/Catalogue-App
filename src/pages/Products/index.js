@@ -1,24 +1,60 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Button, Col, Row, Table} from "reactstrap";
 import Breadcrumbs from "../../components/Breadcrumb";
 import Create from "./components/Create";
+import {axiosApi} from "../../helpers/api";
+import Edit from "./components/Edit";
 
 const Products = () => {
 
+    const [products, setProducts] = useState([]);
+
+    const [product, setProduct] = useState(null);
+
+    //State to manage create modal
     const [createProduct, setCreateProduct] = useState(false);
     const toggleCreate = () => setCreateProduct(!createProduct);
 
+    // State to manage edit modal
     const [editProduct, setEditProduct] = useState(false);
     const toggleEdit = () => setEditProduct(!editProduct);
 
-    const edit = () => {
+    /**
+     * @desc Method to open edit modal.
+     * @returns {Promise<void>}
+     * @param product
+     */
+    const edit = async (product) => {
+        await setProduct(product);
+        toggleEdit();
+    }
 
+    /**
+     * @desc Method to get products records.
+     * @returns {Promise<void>}
+     */
+    const getProducts = async () => {
+        await axiosApi.get('product')
+            .then(response => setProducts(response.data))
+            .catch(error => console.error(error));
+    }
+
+    const deleteProduct = async (id) => {
+        await axiosApi.delete(`product/${id}`)
+            .then(response => {
+                getProducts();
+            })
+            .catch(error => console.error(error));
     }
 
     let breadcrumbItems = [
         {title: "Catalogue", link: "/"},
         {title: "Products", link: "/products"},
     ];
+
+    useEffect(() => {
+        getProducts();
+    }, [])
 
     return (
         <>
@@ -43,7 +79,7 @@ const Products = () => {
                             <th>#</th>
                             <th>Name</th>
                             <th>Size</th>
-                            <th>Comments</th>
+                            <th style={{ width: "30%" }}>Comments</th>
                             <th>Brand</th>
                             <th>Stock</th>
                             <th>Shipment Date</th>
@@ -51,25 +87,33 @@ const Products = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
-                            <td>1</td>
-                            <td>Producto 1</td>
-                            <td>S</td>
-                            <td>Comentarios...</td>
-                            <td>Brand</td>
-                            <td>3</td>
-                            <td>01-01-2000</td>
-                            <td>
-                                <i className="fa fa-edit text-primary" style={{ marginRight: "10px", fontSize: "20px"  }}/>
-                                <i className="fa fa-trash text-danger" style={{ fontSize: "20px" }}/>
-                            </td>
-                        </tr>
+                        {
+                            products.map((product, index) => (
+                                <tr>
+                                    <td>{ product.id }</td>
+                                    <td>{ product.name }</td>
+                                    <td>{ product.size.size }</td>
+                                    <td style={{ textAlign: "justify" }}>{ product.remarks }</td>
+                                    <td>{ product.brand.name }</td>
+                                    <td>{ product.stock }</td>
+                                    <td>{ product.shipment_date }</td>
+                                    <td>
+                                        <i onClick={() => edit(product)} className="fa fa-edit text-primary" style={{ marginRight: "10px", fontSize: "20px"  }}/>
+                                        <i onClick={() => deleteProduct(product.id)} className="fa fa-trash text-danger" style={{ fontSize: "20px" }}/>
+                                    </td>
+                                </tr>
+                            ))
+                        }
                         </tbody>
                     </Table>
                 </Col>
             </Row>
 
-            <Create modal={createProduct} toggle={toggleCreate} />
+            <Create modal={createProduct} toggle={toggleCreate} getProducts={getProducts} />
+
+            {
+                product ? <Edit modal={editProduct} toggle={toggleEdit} product={product} getProducts={getProducts}/> : <></>
+            }
         </>
     )
 }
